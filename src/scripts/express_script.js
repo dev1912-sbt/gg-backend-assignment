@@ -1,6 +1,7 @@
 // Imports
 import express from "express";
 import cors from "cors";
+import eventsRoute from "../routes/events.js";
 
 // Constants
 const { PORT } = process.env;
@@ -19,3 +20,5 @@ export function expressAppListenCallback() {
 }
 
 app.listen(PORT, expressAppListenCallback);
+
+app.use("/events", eventsRoute);

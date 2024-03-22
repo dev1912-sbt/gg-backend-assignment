@@ -1,4 +1,3 @@
-import { before, after } from "mocha";
 import { expect } from "chai";
 import sinon from "sinon";
 import esmock from "esmock";
@@ -21,9 +20,11 @@ describe("scripts/express_script.js", () => {
 
   let consoleLogStub;
 
+  let dummyEventsRoute;
+
   let expressAppListenCallback;
 
-  before(async () => {
+  beforeEach(async () => {
     originalProcessEnv = process.env;
     dummyProcessEnv = {
       PORT: "dummyPort",
@@ -51,14 +52,16 @@ describe("scripts/express_script.js", () => {
 
     consoleLogStub = sinon.stub(console, "log");
 
+    dummyEventsRoute = {};
     const esmockImports = await esmock("../../src/scripts/express_script.js", {
       express: dummyExpressExport,
       cors: corsStub,
+      "../../src/routes/events.js": dummyEventsRoute,
     });
     expressAppListenCallback = esmockImports.expressAppListenCallback;
   });
 
-  after(() => {
+  afterEach(() => {
     process.env = originalProcessEnv;
 
     sinon.restore();
@@ -78,6 +81,8 @@ describe("scripts/express_script.js", () => {
         expressAppListenCallback,
       ),
     ).to.be.true;
+    expect(expressAppUseStub.calledWith("/events", dummyEventsRoute)).to.be
+      .true;
   });
 
   describe("expressAppListenCallback()", () => {

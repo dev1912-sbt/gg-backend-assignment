@@ -1,4 +1,3 @@
-import { before, after } from "mocha";
 import { expect } from "chai";
 import sinon from "sinon";
 import esmock from "esmock";
@@ -12,7 +11,7 @@ describe("schemas/event.js", () => {
 
   let mongooseExports;
 
-  before(async () => {
+  beforeEach(async () => {
     dummySchema = {};
 
     mongooseSchemaStub = sinon.stub().returns(dummySchema);
@@ -28,7 +27,7 @@ describe("schemas/event.js", () => {
     mongooseExports = esmockImports.default;
   });
 
-  after(() => {
+  afterEach(() => {
     sinon.restore();
   });
 
