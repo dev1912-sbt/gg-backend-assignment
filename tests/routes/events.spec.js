@@ -314,7 +314,7 @@ describe("routes/events.js", () => {
     });
   });
 
-  describe("POST /", () => {
+  describe("PUT /:id", () => {
     let routerGetStub;
     let routerPostStub;
     let routerPutStub;
