@@ -7,6 +7,7 @@ describe("routes/events.js", () => {
     let routerGetStub;
     let routerPostStub;
     let routerPutStub;
+    let routerDeleteStub;
 
     let dummyRouter;
     let expressRouterStub;
@@ -29,10 +30,12 @@ describe("routes/events.js", () => {
       routerGetStub = sinon.stub();
       routerPostStub = sinon.stub();
       routerPutStub = sinon.stub();
+      routerDeleteStub = sinon.stub();
       dummyRouter = {
         get: routerGetStub,
         post: routerPostStub,
         put: routerPutStub,
+        delete: routerDeleteStub,
       };
       expressRouterStub = sinon.stub().returns(dummyRouter);
 
@@ -153,6 +156,7 @@ describe("routes/events.js", () => {
     let routerGetStub;
     let routerPostStub;
     let routerPutStub;
+    let routerDeleteStub;
 
     let dummyRouter;
     let expressRouterStub;
@@ -172,10 +176,12 @@ describe("routes/events.js", () => {
       routerGetStub = sinon.stub();
       routerPostStub = sinon.stub();
       routerPutStub = sinon.stub();
+      routerDeleteStub = sinon.stub();
       dummyRouter = {
         get: routerGetStub,
         post: routerPostStub,
         put: routerPutStub,
+        delete: routerDeleteStub,
       };
       expressRouterStub = sinon.stub().returns(dummyRouter);
 
@@ -238,6 +244,8 @@ describe("routes/events.js", () => {
     let routerGetStub;
     let routerPostStub;
     let routerPutStub;
+    let routerDeleteStub;
+
     let dummyRouter;
     let expressRouterStub;
 
@@ -255,10 +263,12 @@ describe("routes/events.js", () => {
       routerGetStub = sinon.stub();
       routerPostStub = sinon.stub();
       routerPutStub = sinon.stub();
+      routerDeleteStub = sinon.stub();
       dummyRouter = {
         get: routerGetStub,
         post: routerPostStub,
         put: routerPutStub,
+        delete: routerDeleteStub,
       };
       expressRouterStub = sinon.stub().returns(dummyRouter);
 
@@ -318,6 +328,7 @@ describe("routes/events.js", () => {
     let routerGetStub;
     let routerPostStub;
     let routerPutStub;
+    let routerDeleteStub;
 
     let dummyRouter;
     let expressRouterStub;
@@ -345,10 +356,12 @@ describe("routes/events.js", () => {
       routerGetStub = sinon.stub();
       routerPostStub = sinon.stub();
       routerPutStub = sinon.stub();
+      routerDeleteStub = sinon.stub();
       dummyRouter = {
         get: routerGetStub,
         post: routerPostStub,
         put: routerPutStub,
+        delete: routerDeleteStub,
       };
       expressRouterStub = sinon.stub().returns(dummyRouter);
 
@@ -477,6 +490,90 @@ describe("routes/events.js", () => {
         bodyWithMessageStub.withArgs(
           "Event longitude should be a valid floating-point number",
         ),
+      );
+      expect(eventsRouter).to.be.equal(dummyRouter);
+    });
+  });
+
+  describe("DELETE /:id", () => {
+    let routerGetStub;
+    let routerPostStub;
+    let routerPutStub;
+    let routerDeleteStub;
+
+    let dummyRouter;
+    let expressRouterStub;
+
+    let dummyParam;
+    let paramIsMongoIdStub;
+    let paramWithMessageStub;
+
+    let expressValidatorParamStub;
+    let dummyExpressValidatorErrorHandler;
+    let dummyEventsDeleteByIdCtrl;
+
+    let eventsRouter;
+
+    beforeEach(async () => {
+      routerGetStub = sinon.stub();
+      routerPostStub = sinon.stub();
+      routerPutStub = sinon.stub();
+      routerDeleteStub = sinon.stub();
+      dummyRouter = {
+        get: routerGetStub,
+        post: routerPostStub,
+        put: routerPutStub,
+        delete: routerDeleteStub,
+      };
+      expressRouterStub = sinon.stub().returns(dummyRouter);
+
+      paramIsMongoIdStub = sinon.stub();
+      paramWithMessageStub = sinon.stub();
+      dummyParam = {
+        isMongoId: paramIsMongoIdStub,
+        withMessage: paramWithMessageStub,
+      };
+      paramIsMongoIdStub.returns(dummyParam);
+      paramWithMessageStub.returns("id_validation");
+
+      expressValidatorParamStub = sinon.stub().returns(dummyParam);
+      dummyExpressValidatorErrorHandler = {};
+      dummyEventsDeleteByIdCtrl = {};
+      const esmockImports = await esmock("../../src/routes/events.js", {
+        express: {
+          Router: expressRouterStub,
+        },
+        "express-validator": {
+          param: expressValidatorParamStub,
+        },
+        "../../src/middlewares/express_validator_error_handler.js": {
+          expressValidatorErrorHandler: dummyExpressValidatorErrorHandler,
+        },
+        "../../src/controllers/events.js": {
+          eventsDeleteByIdCtrl: dummyEventsDeleteByIdCtrl,
+        },
+      });
+      eventsRouter = esmockImports.default;
+    });
+
+    afterEach(() => {
+      sinon.restore();
+    });
+
+    it("defines the route to delete events by id", () => {
+      expect(expressRouterStub.called).to.be.true;
+      expect(
+        routerDeleteStub.calledWith(
+          "/:id",
+          "id_validation",
+          dummyExpressValidatorErrorHandler,
+          dummyEventsDeleteByIdCtrl,
+        ),
+      ).to.be.true;
+      sinon.assert.callOrder(
+        expressValidatorParamStub.withArgs("id"),
+        paramIsMongoIdStub,
+        paramWithMessageStub.withArgs("Please specify a valid event id"),
       );
       expect(eventsRouter).to.be.equal(dummyRouter);
     });

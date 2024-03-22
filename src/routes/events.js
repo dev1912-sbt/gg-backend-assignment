@@ -7,6 +7,7 @@ import {
   eventsGetAllCtrl,
   eventsGetByIdCtrl,
   eventsUpsertByIdCtrl,
+  eventsDeleteByIdCtrl,
 } from "../controllers/events.js";
 
 // Constants
@@ -93,6 +94,13 @@ router.put(
     .withMessage("Event longitude should be a valid floating-point number"),
   expressValidatorErrorHandler,
   eventsUpsertByIdCtrl,
+);
+
+router.delete(
+  "/:id",
+  param("id").isMongoId().withMessage("Please specify a valid event id"),
+  expressValidatorErrorHandler,
+  eventsDeleteByIdCtrl,
 );
 
 export default router;

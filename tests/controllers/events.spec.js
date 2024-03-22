@@ -23,11 +23,14 @@ describe("controllers/events.js", () => {
   let eventFindStub;
   let eventFindByIdStub;
   let eventFindByIdAndUpdateStub;
+  let eventFindByIdAndDeleteStub;
   let eventCountDocumentsStub;
+
   let eventsCreateCtrl;
   let eventsGetAllCtrl;
   let eventsGetByIdCtrl;
   let eventsUpsertByIdCtrl;
+  let eventsDeleteByIdCtrl;
 
   beforeEach(async () => {
     dummyBody = {};
@@ -61,6 +64,7 @@ describe("controllers/events.js", () => {
     eventFindStub = sinon.stub();
     eventFindByIdStub = sinon.stub();
     eventFindByIdAndUpdateStub = sinon.stub();
+    eventFindByIdAndDeleteStub = sinon.stub();
     eventCountDocumentsStub = sinon.stub();
 
     const esmockImports = await esmock("../../src/controllers/events.js", {
@@ -69,6 +73,7 @@ describe("controllers/events.js", () => {
         find: eventFindStub,
         findById: eventFindByIdStub,
         findByIdAndUpdate: eventFindByIdAndUpdateStub,
+        findByIdAndDelete: eventFindByIdAndDeleteStub,
         countDocuments: eventCountDocumentsStub,
       },
     });
@@ -76,6 +81,7 @@ describe("controllers/events.js", () => {
     eventsGetAllCtrl = esmockImports.eventsGetAllCtrl;
     eventsGetByIdCtrl = esmockImports.eventsGetByIdCtrl;
     eventsUpsertByIdCtrl = esmockImports.eventsUpsertByIdCtrl;
+    eventsDeleteByIdCtrl = esmockImports.eventsDeleteByIdCtrl;
   });
 
   afterEach(() => {
@@ -524,6 +530,73 @@ describe("controllers/events.js", () => {
             upsert: true,
             new: true,
           },
+        ),
+      ).to.be.true;
+      expect(responseStatusStub.calledWith(500)).to.be.true;
+      expect(responseSendStub.calledWith("Unknown error occurred")).to.be.true;
+    });
+  });
+
+  describe("eventsDeleteByIdCtrl()", () => {
+    it("deletes an event by it's id", async () => {
+      dummyParams = { id: "dummyId" };
+      dummyRequest = { params: dummyParams };
+      const dummyEvent = "event";
+      eventFindByIdAndDeleteStub.resolves(dummyEvent);
+
+      await eventsDeleteByIdCtrl(dummyRequest, dummyResponse);
+
+      expect(eventFindByIdAndDeleteStub.calledWith("dummyId")).to.be.true;
+      expect(responseStatusStub.calledWith(200)).to.be.true;
+      expect(responseJsonStub.calledWith({ event: dummyEvent })).to.be.true;
+    });
+
+    it("responds with error message if the event was not found", async () => {
+      dummyParams = { id: "dummyId" };
+      dummyRequest = { params: dummyParams };
+      eventFindByIdAndDeleteStub.resolves(null);
+
+      await eventsDeleteByIdCtrl(dummyRequest, dummyResponse);
+
+      expect(eventFindByIdAndDeleteStub.calledWith("dummyId")).to.be.true;
+      expect(responseStatusStub.calledWith(404)).to.be.true;
+      expect(
+        responseSendStub.calledWith("Event with specified id does not exist"),
+      ).to.be.true;
+    });
+
+    it("responds with error message if deleting event fails with an error message", async () => {
+      dummyParams = { id: "dummyId" };
+      dummyRequest = { params: dummyParams };
+      const dummyErrorWithMessage = new Error("dummyErrorWithMessage");
+      eventFindByIdAndDeleteStub.throws(dummyErrorWithMessage);
+
+      await eventsDeleteByIdCtrl(dummyRequest, dummyResponse);
+
+      expect(eventFindByIdAndDeleteStub.calledWith("dummyId")).to.be.true;
+      expect(
+        consoleErrorStub.calledWith(
+          "[controllers/events]",
+          dummyErrorWithMessage,
+        ),
+      ).to.be.true;
+      expect(responseStatusStub.calledWith(500)).to.be.true;
+      expect(responseSendStub.calledWith("dummyErrorWithMessage")).to.be.true;
+    });
+
+    it("responds with error message if deleting event fails without an error message", async () => {
+      dummyParams = { id: "dummyId" };
+      dummyRequest = { params: dummyParams };
+      const dummyErrorWithoutMessage = { message: undefined };
+      eventFindByIdAndDeleteStub.throws(dummyErrorWithoutMessage);
+
+      await eventsDeleteByIdCtrl(dummyRequest, dummyResponse);
+
+      expect(eventFindByIdAndDeleteStub.calledWith("dummyId")).to.be.true;
+      expect(
+        consoleErrorStub.calledWith(
+          "[controllers/events]",
+          dummyErrorWithoutMessage,
         ),
       ).to.be.true;
       expect(responseStatusStub.calledWith(500)).to.be.true;
