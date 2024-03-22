@@ -22,10 +22,12 @@ describe("controllers/events.js", () => {
   let dummyMongooseQuery;
   let eventFindStub;
   let eventFindByIdStub;
+  let eventFindByIdAndUpdateStub;
   let eventCountDocumentsStub;
   let eventsCreateCtrl;
   let eventsGetAllCtrl;
   let eventsGetByIdCtrl;
+  let eventsUpsertByIdCtrl;
 
   beforeEach(async () => {
     dummyBody = {};
@@ -58,6 +60,7 @@ describe("controllers/events.js", () => {
     mongooseQuerySkipStub.returns(dummyMongooseQuery);
     eventFindStub = sinon.stub();
     eventFindByIdStub = sinon.stub();
+    eventFindByIdAndUpdateStub = sinon.stub();
     eventCountDocumentsStub = sinon.stub();
 
     const esmockImports = await esmock("../../src/controllers/events.js", {
@@ -65,12 +68,14 @@ describe("controllers/events.js", () => {
         create: eventCreateStub,
         find: eventFindStub,
         findById: eventFindByIdStub,
+        findByIdAndUpdate: eventFindByIdAndUpdateStub,
         countDocuments: eventCountDocumentsStub,
       },
     });
     eventsCreateCtrl = esmockImports.eventsCreateCtrl;
     eventsGetAllCtrl = esmockImports.eventsGetAllCtrl;
     eventsGetByIdCtrl = esmockImports.eventsGetByIdCtrl;
+    eventsUpsertByIdCtrl = esmockImports.eventsUpsertByIdCtrl;
   });
 
   afterEach(() => {
@@ -404,7 +409,7 @@ describe("controllers/events.js", () => {
       ).to.be.true;
     });
 
-    it("respond with error message if finding event fails with an error message", async () => {
+    it("responds with error message if finding event fails with an error message", async () => {
       dummyParams = { id: "dummyId" };
       dummyRequest = { params: dummyParams };
       const dummyErrorWithMessage = new Error("dummyErrorWithMessage");
@@ -423,7 +428,7 @@ describe("controllers/events.js", () => {
       expect(responseSendStub.calledWith("dummyErrorWithMessage")).to.be.true;
     });
 
-    it("respond with error message if finding event fails without an error message", async () => {
+    it("responds with error message if finding event fails without an error message", async () => {
       dummyParams = { id: "dummyId" };
       dummyRequest = { params: dummyParams };
       const dummyErrorWithoutMessage = { message: undefined };
@@ -436,6 +441,89 @@ describe("controllers/events.js", () => {
         consoleErrorStub.calledWith(
           "[controllers/events]",
           dummyErrorWithoutMessage,
+        ),
+      ).to.be.true;
+      expect(responseStatusStub.calledWith(500)).to.be.true;
+      expect(responseSendStub.calledWith("Unknown error occurred")).to.be.true;
+    });
+  });
+
+  describe("eventsUpsertByIdCtrl()", () => {
+    it("upserts the event at id with data", async () => {
+      dummyParams = { id: "dummyId" };
+      dummyBody = {
+        event_name: "event_name",
+        city_name: "city_name",
+        date: "date",
+        latitude: "latitude",
+        longitude: "longitude",
+      };
+      dummyRequest = { params: dummyParams, body: dummyBody };
+      const dummyEvent = "event";
+      eventFindByIdAndUpdateStub.resolves(dummyEvent);
+
+      await eventsUpsertByIdCtrl(dummyRequest, dummyResponse);
+
+      expect(
+        eventFindByIdAndUpdateStub.calledWith(
+          "dummyId",
+          {
+            $set: dummyBody,
+          },
+          {
+            upsert: true,
+            new: true,
+          },
+        ),
+      ).to.be.true;
+      expect(responseStatusStub.calledWith(200)).to.be.true;
+      expect(responseJsonStub.calledWith({ event: dummyEvent })).to.be.true;
+    });
+
+    it("responds with error message if finding event fails with an error message", async () => {
+      dummyParams = { id: "dummyId" };
+      dummyBody = {};
+      dummyRequest = { params: dummyParams, body: dummyBody };
+      const dummyErrorWithMessage = new Error("dummyErrorWithMessage");
+      eventFindByIdAndUpdateStub.throws(dummyErrorWithMessage);
+
+      await eventsUpsertByIdCtrl(dummyRequest, dummyResponse);
+
+      expect(
+        eventFindByIdAndUpdateStub.calledWith(
+          "dummyId",
+          {
+            $set: dummyBody,
+          },
+          {
+            upsert: true,
+            new: true,
+          },
+        ),
+      ).to.be.true;
+      expect(responseStatusStub.calledWith(500)).to.be.true;
+      expect(responseSendStub.calledWith("dummyErrorWithMessage")).to.be.true;
+    });
+
+    it("responds with error message if finding event fails without an error message", async () => {
+      dummyParams = { id: "dummyId" };
+      dummyBody = {};
+      dummyRequest = { params: dummyParams, body: dummyBody };
+      const dummyErrorWithoutMessage = { message: undefined };
+      eventFindByIdAndUpdateStub.throws(dummyErrorWithoutMessage);
+
+      await eventsUpsertByIdCtrl(dummyRequest, dummyResponse);
+
+      expect(
+        eventFindByIdAndUpdateStub.calledWith(
+          "dummyId",
+          {
+            $set: dummyBody,
+          },
+          {
+            upsert: true,
+            new: true,
+          },
         ),
       ).to.be.true;
       expect(responseStatusStub.calledWith(500)).to.be.true;

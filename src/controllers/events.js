@@ -66,3 +66,27 @@ export async function eventsGetByIdCtrl(req, res) {
     res.status(500).send(error?.message ?? "Unknown error occurred");
   }
 }
+
+export async function eventsUpsertByIdCtrl(req, res) {
+  try {
+    const { params, body } = req;
+
+    const { id } = params;
+
+    const event = await Event.findByIdAndUpdate(
+      id,
+      {
+        $set: body,
+      },
+      {
+        upsert: true,
+        new: true,
+      },
+    );
+
+    res.status(200).json({ event });
+  } catch (error) {
+    console.error("[controllers/events]", error);
+    res.status(500).send(error?.message ?? "Unknown error occurred");
+  }
+}
