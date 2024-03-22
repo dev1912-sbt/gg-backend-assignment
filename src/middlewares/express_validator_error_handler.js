@@ -1,5 +1,7 @@
+// Imports
 import { validationResult } from "express-validator";
 
+// Constants/Body
 export function expressValidatorErrorHandler(req, res, next) {
   const validationErrors = validationResult(req);
   if (!validationErrors.isEmpty()) {
