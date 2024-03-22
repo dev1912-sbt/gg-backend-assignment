@@ -1,5 +1,6 @@
 // Cache environment variables
-require("dotenv").config();
+import dotenv from "dotenv";
+dotenv.config();
 
 // Start Express server
-require("./scripts/express_script");
+import("./scripts/express_script.js");
