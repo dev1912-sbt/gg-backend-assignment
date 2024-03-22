@@ -1,8 +1,8 @@
 // Imports
 import { Router } from "express";
-import { body } from "express-validator";
+import { query, body } from "express-validator";
 import { expressValidatorErrorHandler } from "../middlewares/express_validator_error_handler.js";
-import { eventsCreateCtrl } from "../controllers/events.js";
+import { eventsCreateCtrl, eventsGetAllCtrl } from "../controllers/events.js";
 
 // Constants
 const router = Router();
@@ -38,6 +38,16 @@ router.post(
     .withMessage("Event longitude should be a valid floating-point number"),
   expressValidatorErrorHandler,
   eventsCreateCtrl,
+);
+
+router.get(
+  "/",
+  query("page")
+    .optional()
+    .isInt({ min: 1 })
+    .withMessage("Please specify a valid page to fetch"),
+  expressValidatorErrorHandler,
+  eventsGetAllCtrl,
 );
 
 export default router;
