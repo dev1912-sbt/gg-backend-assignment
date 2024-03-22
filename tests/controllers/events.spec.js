@@ -4,7 +4,7 @@ import esmock from "esmock";
 
 describe("controllers/events.js", () => {
   let dummyBody;
-  let dummyQuery;
+  let dummyParams;
   let dummyRequest;
 
   let responseStatusStub;
@@ -21,13 +21,15 @@ describe("controllers/events.js", () => {
   let mongooseQueryLimitStub;
   let dummyMongooseQuery;
   let eventFindStub;
+  let eventFindByIdStub;
   let eventCountDocumentsStub;
   let eventsCreateCtrl;
   let eventsGetAllCtrl;
+  let eventsGetByIdCtrl;
 
   beforeEach(async () => {
     dummyBody = {};
-    dummyQuery = {};
+    dummyParams = {};
     dummyRequest = {};
 
     responseStatusStub = sinon.stub();
@@ -55,17 +57,20 @@ describe("controllers/events.js", () => {
     mongooseQuerySortStub.returns(dummyMongooseQuery);
     mongooseQuerySkipStub.returns(dummyMongooseQuery);
     eventFindStub = sinon.stub();
+    eventFindByIdStub = sinon.stub();
     eventCountDocumentsStub = sinon.stub();
 
     const esmockImports = await esmock("../../src/controllers/events.js", {
       "../../src/schemas/event.js": {
         create: eventCreateStub,
         find: eventFindStub,
+        findById: eventFindByIdStub,
         countDocuments: eventCountDocumentsStub,
       },
     });
     eventsCreateCtrl = esmockImports.eventsCreateCtrl;
     eventsGetAllCtrl = esmockImports.eventsGetAllCtrl;
+    eventsGetByIdCtrl = esmockImports.eventsGetByIdCtrl;
   });
 
   afterEach(() => {
@@ -169,8 +174,8 @@ describe("controllers/events.js", () => {
 
   describe("eventsGetAllCtrl()", () => {
     it("gets all page 1 events if page is not specified", async () => {
-      dummyQuery = {};
-      dummyRequest = { query: dummyQuery };
+      dummyParams = {};
+      dummyRequest = { query: dummyParams };
       const dummyEvents = ["event"];
       mongooseQueryLimitStub.resolves(dummyEvents);
       eventCountDocumentsStub.resolves(dummyEvents.length);
@@ -196,8 +201,8 @@ describe("controllers/events.js", () => {
     });
 
     it("gets all page 1 events if page specified is 1", async () => {
-      dummyQuery = { page: 1 };
-      dummyRequest = { query: dummyQuery };
+      dummyParams = { page: 1 };
+      dummyRequest = { query: dummyParams };
       const dummyEvents = ["event"];
       mongooseQueryLimitStub.resolves(dummyEvents);
       eventCountDocumentsStub.resolves(dummyEvents.length);
@@ -223,8 +228,8 @@ describe("controllers/events.js", () => {
     });
 
     it("gets all page 2 events if page specified is 2", async () => {
-      dummyQuery = { page: 2 };
-      dummyRequest = { query: dummyQuery };
+      dummyParams = { page: 2 };
+      dummyRequest = { query: dummyParams };
       const dummyTwoPageEvents = [
         "event1",
         "event2",
@@ -267,9 +272,9 @@ describe("controllers/events.js", () => {
       ).to.be.true;
     });
 
-    it("respond with error message if page exceeds the available pages", async () => {
-      dummyQuery = { page: 2 };
-      dummyRequest = { query: dummyQuery };
+    it("responds with error message if page exceeds the available pages", async () => {
+      dummyParams = { page: 2 };
+      dummyRequest = { query: dummyParams };
       const dummyEvents = ["event"];
       eventCountDocumentsStub.resolves(dummyEvents.length);
 
@@ -298,9 +303,9 @@ describe("controllers/events.js", () => {
       ).to.be.false;
     });
 
-    it("respond with error message if finding events fails with an error message", async () => {
-      dummyQuery = {};
-      dummyRequest = { query: dummyQuery };
+    it("responds with error message if finding events fails with an error message", async () => {
+      dummyParams = {};
+      dummyRequest = { query: dummyParams };
       const dummyEvents = ["event"];
       eventCountDocumentsStub.resolves(dummyEvents.length);
       eventFindStub.returns(dummyMongooseQuery);
@@ -334,9 +339,9 @@ describe("controllers/events.js", () => {
       expect(responseSendStub.calledWith("dummyErrorWithMessage")).to.be.true;
     });
 
-    it("respond with error message if finding events fails without an error message", async () => {
-      dummyQuery = {};
-      dummyRequest = { query: dummyQuery };
+    it("responds with error message if finding events fails without an error message", async () => {
+      dummyParams = {};
+      dummyRequest = { query: dummyParams };
       const dummyEvents = ["event"];
       eventCountDocumentsStub.resolves(dummyEvents.length);
       eventFindStub.returns(dummyMongooseQuery);
@@ -360,6 +365,73 @@ describe("controllers/events.js", () => {
           totalPages: 1,
         }),
       ).to.be.false;
+      expect(
+        consoleErrorStub.calledWith(
+          "[controllers/events]",
+          dummyErrorWithoutMessage,
+        ),
+      ).to.be.true;
+      expect(responseStatusStub.calledWith(500)).to.be.true;
+      expect(responseSendStub.calledWith("Unknown error occurred")).to.be.true;
+    });
+  });
+
+  describe("eventsGetByIdCtrl()", () => {
+    it("finds an event by it's id", async () => {
+      dummyParams = { id: "dummyId" };
+      dummyRequest = { params: dummyParams };
+      const dummyEvent = "event";
+      eventFindByIdStub.resolves(dummyEvent);
+
+      await eventsGetByIdCtrl(dummyRequest, dummyResponse);
+
+      expect(eventFindByIdStub.calledWith("dummyId")).to.be.true;
+      expect(responseStatusStub.calledWith(200)).to.be.true;
+      expect(responseJsonStub.calledWith({ event: dummyEvent })).to.be.true;
+    });
+
+    it("responds with error message if the event was not found", async () => {
+      dummyParams = { id: "dummyId" };
+      dummyRequest = { params: dummyParams };
+      eventFindByIdStub.resolves(null);
+
+      await eventsGetByIdCtrl(dummyRequest, dummyResponse);
+
+      expect(eventFindByIdStub.calledWith("dummyId")).to.be.true;
+      expect(responseStatusStub.calledWith(404)).to.be.true;
+      expect(
+        responseSendStub.calledWith("Event with specified id does not exist"),
+      ).to.be.true;
+    });
+
+    it("respond with error message if finding event fails with an error message", async () => {
+      dummyParams = { id: "dummyId" };
+      dummyRequest = { params: dummyParams };
+      const dummyErrorWithMessage = new Error("dummyErrorWithMessage");
+      eventFindByIdStub.throws(dummyErrorWithMessage);
+
+      await eventsGetByIdCtrl(dummyRequest, dummyResponse);
+
+      expect(eventFindByIdStub.calledWith("dummyId")).to.be.true;
+      expect(
+        consoleErrorStub.calledWith(
+          "[controllers/events]",
+          dummyErrorWithMessage,
+        ),
+      ).to.be.true;
+      expect(responseStatusStub.calledWith(500)).to.be.true;
+      expect(responseSendStub.calledWith("dummyErrorWithMessage")).to.be.true;
+    });
+
+    it("respond with error message if finding event fails without an error message", async () => {
+      dummyParams = { id: "dummyId" };
+      dummyRequest = { params: dummyParams };
+      const dummyErrorWithoutMessage = { message: undefined };
+      eventFindByIdStub.throws(dummyErrorWithoutMessage);
+
+      await eventsGetByIdCtrl(dummyRequest, dummyResponse);
+
+      expect(eventFindByIdStub.calledWith("dummyId")).to.be.true;
       expect(
         consoleErrorStub.calledWith(
           "[controllers/events]",

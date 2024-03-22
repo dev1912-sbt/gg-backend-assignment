@@ -1,8 +1,12 @@
 // Imports
 import { Router } from "express";
-import { query, body } from "express-validator";
+import { param, query, body } from "express-validator";
 import { expressValidatorErrorHandler } from "../middlewares/express_validator_error_handler.js";
-import { eventsCreateCtrl, eventsGetAllCtrl } from "../controllers/events.js";
+import {
+  eventsCreateCtrl,
+  eventsGetAllCtrl,
+  eventsGetByIdCtrl,
+} from "../controllers/events.js";
 
 // Constants
 const router = Router();
@@ -48,6 +52,13 @@ router.get(
     .withMessage("Please specify a valid page to fetch"),
   expressValidatorErrorHandler,
   eventsGetAllCtrl,
+);
+
+router.get(
+  "/:id",
+  param("id").isMongoId().withMessage("Please specify a valid event id"),
+  expressValidatorErrorHandler,
+  eventsGetByIdCtrl,
 );
 
 export default router;

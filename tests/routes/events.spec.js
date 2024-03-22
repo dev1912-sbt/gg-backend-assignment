@@ -154,7 +154,7 @@ describe("routes/events.js", () => {
     let bodyOptionalStub;
     let bodyIsIntStub;
     let bodyWithMessageStub;
-    let dummyBody;
+    let dummyQuery;
 
     let expressValidatorQueryStub;
     let dummyExpressValidatorErrorHandler;
@@ -174,15 +174,15 @@ describe("routes/events.js", () => {
       bodyOptionalStub = sinon.stub();
       bodyIsIntStub = sinon.stub();
       bodyWithMessageStub = sinon.stub().returns("page_validation");
-      dummyBody = {
+      dummyQuery = {
         optional: bodyOptionalStub,
         isInt: bodyIsIntStub,
         withMessage: bodyWithMessageStub,
       };
-      bodyOptionalStub.returns(dummyBody);
-      bodyIsIntStub.returns(dummyBody);
+      bodyOptionalStub.returns(dummyQuery);
+      bodyIsIntStub.returns(dummyQuery);
 
-      expressValidatorQueryStub = sinon.stub().returns(dummyBody);
+      expressValidatorQueryStub = sinon.stub().returns(dummyQuery);
       dummyExpressValidatorErrorHandler = {};
       dummyEventsGetAllCtrl = {};
       const esmockImports = await esmock("../../src/routes/events.js", {
@@ -221,6 +221,83 @@ describe("routes/events.js", () => {
         bodyOptionalStub,
         bodyIsIntStub.withArgs({ min: 1 }),
         bodyWithMessageStub.withArgs("Please specify a valid page to fetch"),
+      );
+      expect(eventsRouter).to.be.equal(dummyRouter);
+    });
+  });
+
+  describe("GET /:id", () => {
+    let routerGetStub;
+    let routerPostStub;
+    let dummyRouter;
+    let expressRouterStub;
+
+    let paramIsMongoIdStub;
+    let paramWithMessageStub;
+    let dummyParam;
+
+    let expressValidatorParamStub;
+    let dummyExpressValidatorErrorHandler;
+    let dummyEventsGetByIdCtrl;
+
+    let eventsRouter;
+
+    beforeEach(async () => {
+      routerGetStub = sinon.stub();
+      routerPostStub = sinon.stub();
+      dummyRouter = {
+        get: routerGetStub,
+        post: routerPostStub,
+      };
+      expressRouterStub = sinon.stub().returns(dummyRouter);
+
+      paramIsMongoIdStub = sinon.stub();
+      paramWithMessageStub = sinon.stub();
+      dummyParam = {
+        isMongoId: paramIsMongoIdStub,
+        withMessage: paramWithMessageStub,
+      };
+      paramIsMongoIdStub.returns(dummyParam);
+      paramWithMessageStub.returns("id_validation");
+
+      expressValidatorParamStub = sinon.stub().returns(dummyParam);
+      dummyExpressValidatorErrorHandler = {};
+      dummyEventsGetByIdCtrl = {};
+      const esmockImports = await esmock("../../src/routes/events.js", {
+        express: {
+          Router: expressRouterStub,
+        },
+        "express-validator": {
+          param: expressValidatorParamStub,
+        },
+        "../../src/middlewares/express_validator_error_handler.js": {
+          expressValidatorErrorHandler: dummyExpressValidatorErrorHandler,
+        },
+        "../../src/controllers/events.js": {
+          eventsGetByIdCtrl: dummyEventsGetByIdCtrl,
+        },
+      });
+      eventsRouter = esmockImports.default;
+    });
+
+    afterEach(() => {
+      sinon.restore();
+    });
+
+    it("defines the route to get events by id", () => {
+      expect(expressRouterStub.called).to.be.true;
+      expect(
+        routerGetStub.calledWith(
+          "/:id",
+          "id_validation",
+          dummyExpressValidatorErrorHandler,
+          dummyEventsGetByIdCtrl,
+        ),
+      ).to.be.true;
+      sinon.assert.callOrder(
+        expressValidatorParamStub.withArgs("id"),
+        paramIsMongoIdStub,
+        paramWithMessageStub.withArgs("Please specify a valid event id"),
       );
       expect(eventsRouter).to.be.equal(dummyRouter);
     });
