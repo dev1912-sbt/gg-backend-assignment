@@ -144,4 +144,7 @@ dist
 # Macos files
 .DS_Store
 
+# Vscode configuration files
+.vscode
+
 # End of https://www.toptal.com/developers/gitignore/api/node
