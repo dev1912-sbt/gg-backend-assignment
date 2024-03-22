@@ -18,20 +18,16 @@ const schema = new mongoose.Schema(
       type: Date,
       required: true,
     },
-    latitude: {
-      type: Number,
+    coordinates: {
+      type: [Number],
       required: true,
-    },
-    longitude: {
-      type: Number,
-      required: true,
+      index: "2dsphere",
     },
   },
   {
     timestamps: true,
   },
 );
-schema.index({ latitude: "2dsphere", longitude: "2dsphere" });
 
 const model = mongoose.model("event", schema);
 export default model;

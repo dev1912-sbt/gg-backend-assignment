@@ -4,7 +4,6 @@ import sinon from "sinon";
 import esmock from "esmock";
 
 describe("schemas/event.js", () => {
-  let schemaIndexStub;
   let dummySchema;
 
   let mongooseSchemaStub;
@@ -14,10 +13,7 @@ describe("schemas/event.js", () => {
   let mongooseExports;
 
   before(async () => {
-    schemaIndexStub = sinon.stub();
-    dummySchema = {
-      index: schemaIndexStub,
-    };
+    dummySchema = {};
 
     mongooseSchemaStub = sinon.stub().returns(dummySchema);
     mongooseModelStub = sinon.stub().returns("mongooseModelStub");
@@ -54,25 +50,16 @@ describe("schemas/event.js", () => {
             type: Date,
             required: true,
           },
-          latitude: {
-            type: Number,
+          coordinates: {
+            type: [Number],
             required: true,
-          },
-          longitude: {
-            type: Number,
-            required: true,
+            index: "2dsphere",
           },
         },
         {
           timestamps: true,
         },
       ),
-    ).to.be.true;
-    expect(
-      schemaIndexStub.calledWith({
-        latitude: "2dsphere",
-        longitude: "2dsphere",
-      }),
     ).to.be.true;
     expect(mongooseModelStub.calledWith("event", dummySchema)).to.be.true;
     expect(mongooseExports).to.be.equal("mongooseModelStub");
