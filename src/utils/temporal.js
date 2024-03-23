@@ -10,3 +10,15 @@ export function convertIndianDateToZuluDate(indianDateToConvert) {
 
   return sameIndianDate;
 }
+
+/**
+ * @param {Date} date Date
+ * @param {number} days Days to add to Date
+ * @returns {Date} Result date
+ */
+export function addDaysToDate(date, days) {
+  const sameDate = new Date(date);
+  sameDate.setDate(sameDate.getDate() + days);
+
+  return sameDate;
+}
