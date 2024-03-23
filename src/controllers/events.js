@@ -31,7 +31,8 @@ export async function eventsGetAllCtrl(req, res) {
   try {
     const { query } = req;
 
-    const { page = 1 } = query;
+    let { page = "1" } = query;
+    page = parseInt(page, 10);
 
     const pageSize = 10;
     const totalEvents = await Event.countDocuments({});
@@ -61,7 +62,9 @@ export async function eventsFindCtrl(req, res) {
   try {
     const { query } = req;
 
-    const { srcLat, srcLong, searchDate, page = 1 } = query;
+    const { srcLat, srcLong, searchDate } = query;
+    let { page = 1 } = query;
+    page = parseInt(page, 10);
 
     const sameSearchDate = new Date(searchDate);
     const zuluSearchDate = convertIndianDateToZuluDate(sameSearchDate);
