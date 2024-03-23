@@ -227,7 +227,7 @@ describe("controllers/events.js", () => {
         responseJsonStub.calledWith({
           events: dummyEvents,
           page: 1,
-          pageSize: 10,
+          pageSize: 1,
           totalEvents: dummyEvents.length,
           totalPages: 1,
         }),
@@ -254,7 +254,7 @@ describe("controllers/events.js", () => {
         responseJsonStub.calledWith({
           events: dummyEvents,
           page: 1,
-          pageSize: 10,
+          pageSize: 1,
           totalEvents: dummyEvents.length,
           totalPages: 1,
         }),
@@ -264,27 +264,9 @@ describe("controllers/events.js", () => {
     it("gets all page 2 events if page specified is 2", async () => {
       dummyParams = { page: 2 };
       dummyRequest = { query: dummyParams };
-      const dummyTwoPageEvents = [
-        "event1",
-        "event2",
-        "event3",
-        "event4",
-        "event5",
-        ,
-        "event6",
-        ,
-        "event7",
-        ,
-        "event8",
-        ,
-        "event9",
-        ,
-        "event10",
-        ,
-        "event11",
-      ];
-      mongooseQueryLimitStub.resolves(dummyTwoPageEvents);
-      eventCountDocumentsStub.resolves(dummyTwoPageEvents.length);
+      const dummyPage2Events = ["event11"];
+      mongooseQueryLimitStub.resolves(dummyPage2Events);
+      eventCountDocumentsStub.resolves(11);
       eventFindStub.returns(dummyMongooseQuery);
 
       await eventsGetAllCtrl(dummyRequest, dummyResponse);
@@ -297,10 +279,10 @@ describe("controllers/events.js", () => {
       expect(responseStatusStub.calledWith(200)).to.be.true;
       expect(
         responseJsonStub.calledWith({
-          events: dummyTwoPageEvents,
+          events: dummyPage2Events,
           page: 2,
-          pageSize: 10,
-          totalEvents: dummyTwoPageEvents.length,
+          pageSize: 1,
+          totalEvents: 11,
           totalPages: 2,
         }),
       ).to.be.true;
@@ -499,7 +481,7 @@ describe("controllers/events.js", () => {
         responseJsonStub.calledWith({
           events: expectedFilledEvents,
           page: 1,
-          pageSize: 10,
+          pageSize: 1,
           totalEvents: 1,
           totalPages: 1,
         }),
@@ -595,7 +577,7 @@ describe("controllers/events.js", () => {
         responseJsonStub.calledWith({
           events: expectedFilledEvents,
           page: 1,
-          pageSize: 10,
+          pageSize: 1,
           totalEvents: 1,
           totalPages: 1,
         }),
@@ -691,7 +673,7 @@ describe("controllers/events.js", () => {
         responseJsonStub.calledWith({
           events: expectedPage2FilledEvents,
           page: 2,
-          pageSize: 10,
+          pageSize: 1,
           totalEvents: 11,
           totalPages: 2,
         }),
@@ -797,7 +779,7 @@ describe("controllers/events.js", () => {
         responseJsonStub.calledWith({
           events: mixedFilledEvents,
           page: 1,
-          pageSize: 10,
+          pageSize: 2,
           totalEvents: 2,
           totalPages: 1,
         }),

@@ -47,7 +47,9 @@ export async function eventsGetAllCtrl(req, res) {
       .skip((page - 1) * pageSize)
       .limit(pageSize);
 
-    res.status(200).json({ events, page, pageSize, totalEvents, totalPages });
+    res
+      .status(200)
+      .json({ events, page, pageSize: events.length, totalEvents, totalPages });
   } catch (error) {
     console.error("[controllers/events]", error);
     res.status(500).send(error?.message ?? "Unknown error occurred");
@@ -132,7 +134,7 @@ export async function eventsFindCtrl(req, res) {
     res.status(200).json({
       events: filledEvents,
       page,
-      pageSize,
+      pageSize: filledEvents.length,
       totalEvents,
       totalPages,
     });
