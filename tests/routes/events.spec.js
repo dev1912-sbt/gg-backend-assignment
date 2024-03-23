@@ -15,10 +15,13 @@ describe("routes/events.js", () => {
   let paramWithMessageStub;
   let dummyParam;
 
+  let queryExistsStub;
   let queryOptionalStub;
   let queryIsIntStub;
   let queryIsFloatStub;
+  let queryMatchesStub;
   let queryWithMessageStub;
+  let queryToFloatStub;
   let dummyQuery;
 
   let bodyExistsStub;
@@ -38,6 +41,7 @@ describe("routes/events.js", () => {
   let dummyEventsGetByIdCtrl;
   let dummyEventsUpsertById;
   let dummyEventsDeleteByIdCtrl;
+  let dummyEventsFindCtrl;
 
   let eventsRouter;
 
@@ -63,20 +67,29 @@ describe("routes/events.js", () => {
     paramIsMongoIdStub.returns(dummyParam);
     paramWithMessageStub.returns(dummyParam);
 
+    queryExistsStub = sinon.stub();
     queryOptionalStub = sinon.stub();
     queryIsIntStub = sinon.stub();
     queryIsFloatStub = sinon.stub();
+    queryMatchesStub = sinon.stub();
     queryWithMessageStub = sinon.stub();
+    queryToFloatStub = sinon.stub();
     dummyQuery = {
+      exists: queryExistsStub,
       optional: queryOptionalStub,
       isInt: queryIsIntStub,
       isFloat: queryIsFloatStub,
+      matches: queryMatchesStub,
       withMessage: queryWithMessageStub,
+      toFloat: queryToFloatStub,
     };
+    queryExistsStub.returns(dummyQuery);
     queryOptionalStub.returns(dummyQuery);
     queryIsIntStub.returns(dummyQuery);
     queryIsFloatStub.returns(dummyQuery);
+    queryMatchesStub.returns(dummyQuery);
     queryWithMessageStub.returns(dummyQuery);
+    queryToFloatStub.returns(dummyQuery);
 
     bodyExistsStub = sinon.stub();
     bodyWithMessageStub = sinon.stub();
@@ -122,6 +135,8 @@ describe("routes/events.js", () => {
         eventsGetByIdCtrl: dummyEventsGetByIdCtrl,
         eventsUpsertByIdCtrl: dummyEventsUpsertById,
         eventsDeleteByIdCtrl: dummyEventsDeleteByIdCtrl,
+        EVENTS_FIND_SEARCHDATE_PATTERN: "dummyEventsFindSearchdatePattern",
+        eventsFindCtrl: dummyEventsFindCtrl,
       },
     });
     eventsRouter = esmockImports.default;
@@ -200,6 +215,57 @@ describe("routes/events.js", () => {
           dummyEventsGetAllCtrl,
         ),
       ).to.be.true;
+      sinon.assert.callOrder(
+        expressValidatorQueryStub.withArgs("page"),
+        queryOptionalStub,
+        queryIsIntStub.withArgs({ min: 1 }),
+        queryWithMessageStub.withArgs("Please specify a valid page to fetch"),
+      );
+      expect(eventsRouter).to.be.equal(dummyRouter);
+    });
+  });
+
+  describe("GET /find", () => {
+    it("defines the route to find events", () => {
+      expect(expressRouterStub.called).to.be.true;
+      expect(
+        routerGetStub.calledWith(
+          "/find",
+          dummyQuery,
+          dummyQuery,
+          dummyQuery,
+          dummyQuery,
+          dummyExpressValidatorErrorHandler,
+          dummyEventsFindCtrl,
+        ),
+      ).to.be.true;
+      sinon.assert.callOrder(
+        expressValidatorQueryStub.withArgs("srcLat"),
+        queryExistsStub,
+        queryWithMessageStub.withArgs("Please provide the source latitude"),
+        queryIsFloatStub,
+        queryWithMessageStub.withArgs(
+          "Source latitude should be a valid floating-point number",
+        ),
+        queryToFloatStub,
+      );
+      sinon.assert.callOrder(
+        expressValidatorQueryStub.withArgs("srcLong"),
+        queryExistsStub,
+        queryWithMessageStub.withArgs("Please provide the source longitude"),
+        queryIsFloatStub,
+        queryWithMessageStub.withArgs(
+          "Source longitude should be a valid floating-point number",
+        ),
+        queryToFloatStub,
+      );
+      sinon.assert.callOrder(
+        expressValidatorQueryStub.withArgs("searchDate"),
+        queryExistsStub,
+        queryWithMessageStub.withArgs("Please provide the search date"),
+        queryMatchesStub.withArgs("dummyEventsFindSearchdatePattern"),
+        queryWithMessageStub.withArgs("Search date must be a valid date"),
+      );
       sinon.assert.callOrder(
         expressValidatorQueryStub.withArgs("page"),
         queryOptionalStub,

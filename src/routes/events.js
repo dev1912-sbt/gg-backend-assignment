@@ -6,6 +6,8 @@ import {
   eventsCreateCtrl,
   eventsGetAllCtrl,
   eventsGetByIdCtrl,
+  EVENTS_FIND_SEARCHDATE_PATTERN,
+  eventsFindCtrl,
   eventsUpsertByIdCtrl,
   eventsDeleteByIdCtrl,
 } from "../controllers/events.js";
@@ -54,6 +56,33 @@ router.get(
     .withMessage("Please specify a valid page to fetch"),
   expressValidatorErrorHandler,
   eventsGetAllCtrl,
+);
+
+router.get(
+  "/find",
+  query("srcLat")
+    .exists()
+    .withMessage("Please provide the source latitude")
+    .isFloat()
+    .withMessage("Source latitude should be a valid floating-point number")
+    .toFloat(),
+  query("srcLong")
+    .exists()
+    .withMessage("Please provide the source longitude")
+    .isFloat()
+    .withMessage("Source longitude should be a valid floating-point number")
+    .toFloat(),
+  query("searchDate")
+    .exists()
+    .withMessage("Please provide the search date")
+    .matches(EVENTS_FIND_SEARCHDATE_PATTERN)
+    .withMessage("Search date must be a valid date"),
+  query("page")
+    .optional()
+    .isInt({ min: 1 })
+    .withMessage("Please specify a valid page to fetch"),
+  expressValidatorErrorHandler,
+  eventsFindCtrl,
 );
 
 router.get(
